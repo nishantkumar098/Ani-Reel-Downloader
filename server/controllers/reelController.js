@@ -1,50 +1,44 @@
-const ytDlp = require("yt-dlp-exec");
+const { igdl } = require("ab-downloader");
 
 const downloadReel = async (req, res) => {
+  try {
+    const { url } = req.body;
 
-    try {
-
-        const { url } = req.body;
-
-        console.log(url);
-
-        if (!url) {
-            return res.status(400).json({
-                success: false,
-                message: "URL is required",
-            });
-        }
-
-        const info = await ytDlp(url, {
-            dumpSingleJson: true,
-            noWarnings: true,
-            noCallHome: true,
-            preferFreeFormats: true,
-            youtubeSkipDashManifest: true,
-        });
-
-        console.log(info);
-
-        res.json({
-            success: true,
-            title: info.title,
-            thumbnail: info.thumbnails?.[0]?.url,
-            videoUrl: info.formats.find(
-                (format) => format.vcodec !== "none"
-            )?.url,
-        });
-
-    } catch (error) {
-
-        console.log(error);
-
-        res.status(500).json({
-            success: false,
-            message: "Failed to fetch reel",
-        });
+    if (!url) {
+      return res.status(400).json({
+        success: false,
+        message: "URL is required",
+      });
     }
+
+    const results = await igdl(url);
+    const media = Array.isArray(results) ? results[0] : results;
+
+    if (!media?.url) {
+      return res.status(422).json({
+        success: false,
+        message: "Could not extract video from this reel. Check the URL is public.",
+      });
+    }
+
+    res.json({
+      success: true,
+      title: "Instagram Reel",
+      thumbnail: media.thumbnail,
+      videoUrl: media.url,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message:
+        error.message ||
+        "Failed to fetch reel. The post may be private or Instagram may be blocking the request.",
+    });
+  }
 };
 
 module.exports = {
-    downloadReel,
+  downloadReel,
 };

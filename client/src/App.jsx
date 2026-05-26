@@ -153,14 +153,7 @@ function App() {
 
     if (!url) return;
 
-    const apiBase = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
-
-    if (!apiBase) {
-      alert(
-        "API URL is not configured. Set VITE_API_URL in Vercel and redeploy."
-      );
-      return;
-    }
+    const apiBase = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
     try {
 
@@ -168,7 +161,8 @@ function App() {
 
       const response = await axios.post(
         `${apiBase}/api/reels/download`,
-        { url }
+        { url },
+        { timeout: 120000 }
       );
 
       setData(response.data);
@@ -191,7 +185,7 @@ function App() {
 
       alert(
         isNetwork
-          ? "Cannot reach the API. Check VITE_API_URL (https, no trailing slash) and that the Render service is running."
+          ? "Cannot reach the API. Redeploy Vercel (uses /api proxy) or set VITE_API_URL to your Render URL."
           : error.response?.data?.message || "Failed to fetch reel"
       );
 
