@@ -153,12 +153,21 @@ function App() {
 
     if (!url) return;
 
+    const apiBase = import.meta.env.VITE_API_URL?.replace(/\/$/, "");
+
+    if (!apiBase) {
+      alert(
+        "API URL is not configured. Set VITE_API_URL in Vercel and redeploy."
+      );
+      return;
+    }
+
     try {
 
       setLoading(true);
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/reels/download`,
+        `${apiBase}/api/reels/download`,
         { url }
       );
 
@@ -176,7 +185,15 @@ function App() {
 
       console.log(error);
 
-      alert("Failed to fetch reel");
+      const isNetwork =
+        !error.response &&
+        (error.code === "ERR_NETWORK" || error.message === "Network Error");
+
+      alert(
+        isNetwork
+          ? "Cannot reach the API. Check VITE_API_URL (https, no trailing slash) and that the Render service is running."
+          : error.response?.data?.message || "Failed to fetch reel"
+      );
 
     } finally {
 

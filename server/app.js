@@ -10,7 +10,11 @@ app.use(express.json());
 
 app.use("/api/reels", reelRoutes);
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
+
+app.get("/health", (_req, res) => {
+  res.json({ ok: true });
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
